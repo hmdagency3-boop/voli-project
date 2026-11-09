@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 type BanNoticeProps = {
   title: string;
   ban: { until: string | null; reason: string | null; ban_code?: number | null };
-  onSignOut?: () => void;
+  onSignOut?: (() => void) | undefined;
 };
 
 export function BanNotice({ title, ban, onSignOut }: BanNoticeProps) {
