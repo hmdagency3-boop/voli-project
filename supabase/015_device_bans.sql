@@ -71,7 +71,7 @@ language plpgsql security definer set search_path = '' as $$
 declare me uuid := auth.uid(); target uuid; n integer := 0;
 begin
   if me is not null then perform public.admin_guard(); end if;
-  select p.id into target from public.profiles p where p.public_id = p_public_id;
+  select p.auth_id into target from public.profiles p where p.public_id = p_public_id;
   if target is null then raise exception 'Member not found'; end if;
   insert into public.device_bans(kind, device_id, reason, until, created_by)
     select distinct 'device', v.device_id, p_reason, p_until, me from public.device_visits v
@@ -111,5 +111,5 @@ revoke all on function public.ban_network(text,text,timestamptz) from public, an
 grant execute on function public.ban_ip(text,text,timestamptz) to authenticated;
 grant execute on function public.ban_network(text,text,timestamptz) to authenticated;
 
--- Look up a member's devices:  select * from public.device_visits v join public.profiles p on p.id=v.auth_id where p.public_id=1234567 order by v.created_at desc;
+-- Look up a member's devices:  select * from public.device_visits v join public.profiles p on p.auth_id=v.auth_id where p.public_id=1234567 order by v.created_at desc;
 -- Lift a ban:                  delete from public.device_bans where id = ...;
