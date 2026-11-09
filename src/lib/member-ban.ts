@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
 
-export type MyBan = { until: string | null; reason: string | null };
+export type MyBan = { until: string | null; reason: string | null; ban_code?: number | null };
 
 /** Read the current member's ban without loading any management interface. */
 export async function getMyBan(): Promise<MyBan | null> {
