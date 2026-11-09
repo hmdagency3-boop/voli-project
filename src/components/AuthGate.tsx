@@ -3,6 +3,8 @@ import { useNavigate, useRouterState } from '@tanstack/react-router';
 import { useAccount } from '@/hooks/use-account';
 import { getMyBan, type MyBan } from '@/lib/member-ban';
 import { supabase } from '@/lib/supabase';
+import { deviceCheckIn, type DeviceBan } from '@/lib/device-check.functions';
+import { getDeviceDetails, getDeviceId } from '@/lib/device-info';
 
 /** Paths reachable without an account. Everything else requires sign-in. */
 export const PUBLIC_PATHS = ['/login', '/signup'];
@@ -36,6 +38,22 @@ function MemberGate({ children }: { children: ReactNode }) {
     setBan(null);
     if (userId) getMyBan().then(setBan);
   }, [userId]);
+  const [deviceBan, setDeviceBan] = useState<DeviceBan | null>(null);
+  const token = session?.access_token;
+  useEffect(() => {
+    if (!ready) return;
+    let alive = true;
+    (async () => {
+      try {
+        const details = await getDeviceDetails();
+        const result = await deviceCheckIn({
+          data: { deviceId: getDeviceId(), ...(token ? { accessToken: token } : {}), ...details },
+        });
+        if (alive) setDeviceBan(result);
+      } catch { /* never block the app on a failed check */ }
+    })();
+    return () => { alive = false; };
+  }, [ready, userId]); // eslint-disable-line react-hooks/exhaustive-deps
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const shownPath = useRouterState({
     select: (s) => s.matches[s.matches.length - 1]?.pathname ?? s.location.pathname,
@@ -52,8 +70,24 @@ function MemberGate({ children }: { children: ReactNode }) {
   if (!canShowPage({ ready, signedIn: !!session, path: pathname, shownPath })) {
     return <div className="grid h-dvh place-items-center bg-background text-sm text-muted-foreground">…</div>;
   }
+  if (deviceBan) return <DeviceBannedScreen ban={deviceBan} />;
   if (session && ban) return <BannedScreen ban={ban} />;
   return <>{children}</>;
+}
+
+/** Shown to anyone opening the app from a banned phone, IP or network — signed in or not. */
+function DeviceBannedScreen({ ban }: { ban: DeviceBan }) {
+  return (
+    <div className="grid h-dvh place-items-center bg-background px-6 text-center">
+      <div className="max-w-sm space-y-3">
+        <h1 className="text-xl font-bold">{ban.kind === 'device' ? 'هذا الجهاز محظور' : 'هذه الشبكة محظورة'}</h1>
+        <p className="text-sm text-muted-foreground">
+          {ban.until ? `الحظر لحد ${new Date(ban.until).toLocaleString("ar-EG", { dateStyle: "medium", timeStyle: "short" })}` : "الحظر نهائي"}
+        </p>
+        {ban.reason && <p className="text-sm">السبب: {ban.reason}</p>}
+      </div>
+    </div>
+  );
 }
 
 /** Shown instead of every page while the signed-in member is banned. */
