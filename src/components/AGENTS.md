@@ -1,0 +1,4 @@
+# Components
+
+- AuthGate decides from both the address and the page actually on screen (canShowPage), because the router keeps the previous page mounted while it moves, so a signed-out visitor never glimpses an inside page and a signed-in member never glimpses login.
+- RoomGames posts each game result as a normal room chat line through sendRoomMessage, so results reach everyone inside without new SQL; games are listed in src/lib/room-games.ts and only "ready" ones can be played.
