@@ -126,6 +126,6 @@
 - [x] Verify the button over the room frame artwork in an isolated fixture; the real room header with a signed-in account remains unverified.
 
 # Linked device bans
-- [ ] Link account bans to historical device visits, even on another device, and assign ban codes starting at 200.
-- [ ] Show the applicable ban code and reason; verify SQL fresh, rerun and upgrade and the ban screen.
+- [x] Link account bans to historical device visits, even on another device, and assign ban codes starting at 200.
+- [x] Show the applicable ban code and reason; verified 25 tests including SQL fresh, rerun and upgrade, and isolated ban screen at desktop/320px/390px.
 - [ ] Apply updated supabase/015_device_bans.sql and verify real signed-in external-account bans (needs external SQL access).
