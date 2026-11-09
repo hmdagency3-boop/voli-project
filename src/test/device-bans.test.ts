@@ -52,7 +52,7 @@ describe('device-linked account bans', () => {
     await setup();
     await visit(A, 'shared-phone');
     await visit(B, 'shared-phone');
-    await db.exec("select public.ban_member_devices(1234567, false, 'إساءة متكررة')");
+    await db.exec("reset request.jwt.claim.sub; select public.ban_member_devices(1234567, false, 'إساءة متكررة')");
     for (const who of [A, B]) {
       const rows = await visit(who, 'different-phone', '192.0.2.5');
       expect(rows).toEqual([{ banned: true, kind: 'account', reason: 'إساءة متكررة', until: null, ban_code: 200 }]);
@@ -88,7 +88,7 @@ describe('device-linked account bans', () => {
     await db.query('insert into public.device_visits(auth_id, device_id) values ($1,$2)', [B, 'old-phone']);
     await db.exec(sql);
     expect((await visit(B, 'new-phone', '192.0.2.5'))[0]).toMatchObject({ kind: 'account', ban_code: 200, reason: 'حظر سابق' });
-    await db.exec("select public.ban_network('41.33.12.0/24', 'شبكة')");
+    await db.exec("reset request.jwt.claim.sub; select public.ban_network('41.33.12.0/24', 'شبكة')");
     expect((await visit(C, 'new-phone', '41.33.12.8'))[0]?.ban_code).toBe(201);
   }, 20000);
 
